@@ -162,6 +162,8 @@ A few things worth re-checking once you do have hardware to test against:
 
 ## References
 
+Verbatim copies of everything below are kept in [`docs/reference/`](docs/reference) (see [`docs/README.md`](docs/README.md) for licenses and a table mapping each source to the crate file it informed), so the protocol details can be checked without re-fetching from GitHub:
+
 - [`esp_lcd_touch_cst328.c`][waveshare-driver] / [`esp_lcd_touch_cst328.h`](https://github.com/waveshareteam/Waveshare-ESP32-components/blob/main/display/touch/esp_lcd_touch_cst328/include/esp_lcd_touch_cst328.h) — Waveshare's official ESP-IDF component
 - [`cst328_touchscreen.cpp`][esphome-driver] / [`cst328_touchscreen.h`](https://github.com/esphome/esphome/blob/dev/esphome/components/cst328/touchscreen/cst328_touchscreen.h) — ESPHome's component
 - [SensorLib `TouchDrvCST3530.cpp`](https://github.com/lewisxhe/SensorLib/blob/master/src/touch/TouchDrvCST3530.cpp) / [`.hpp`](https://github.com/lewisxhe/SensorLib/blob/master/src/touch/TouchDrvCST3530.hpp) by Lewis He — the *different* protocol this crate deliberately does not implement; see "Why this isn't ported from SensorLib" above
