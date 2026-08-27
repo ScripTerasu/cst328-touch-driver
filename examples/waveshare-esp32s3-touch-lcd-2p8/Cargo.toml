@@ -14,7 +14,7 @@ name = "waveshare-esp32s3-touch-lcd-2p8"
 path = "./src/bin/main.rs"
 
 [dependencies]
-cst328 = { path = "../..", features = ["defmt"] }
+cst328 = { package = "cst328-touch-driver", path = "../..", features = ["defmt"] }
 critical-section = "1.2.0"
 defmt = "1.1.1"
 embassy-executor = { version = "0.10.0", features = ["defmt"] }

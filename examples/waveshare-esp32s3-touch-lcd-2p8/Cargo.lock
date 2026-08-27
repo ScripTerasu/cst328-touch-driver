@@ -113,7 +113,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cst328"
+name = "cst328-touch-driver"
 version = "0.1.0"
 dependencies = [
  "defmt 1.1.1",
@@ -1696,7 +1696,7 @@ name = "waveshare-esp32s3-touch-lcd-2p8"
 version = "0.1.0"
 dependencies = [
  "critical-section",
- "cst328",
+ "cst328-touch-driver",
  "defmt 1.1.1",
  "embassy-executor",
  "embassy-time",

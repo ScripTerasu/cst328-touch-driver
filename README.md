@@ -8,6 +8,17 @@ Validated on a real Waveshare ESP32-S3-Touch-LCD-2.8 board (see [Hardware notes]
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
 
+## Installation
+
+The crates.io package name is `cst328-touch-driver` — `cst328` was already taken by an unrelated, independent driver ([`cmumford/cst328`](https://github.com/cmumford/cst328)) for the same chip. Depend on it with `package = "cst328-touch-driver"` so the code (and every example in this README) can still `use cst328::...`:
+
+```toml
+[dependencies]
+cst328 = { package = "cst328-touch-driver", version = "0.1" }
+```
+
+## Why this isn't ported from SensorLib
+
 ## Why this isn't ported from SensorLib
 
 **SensorLib has no `TouchDrvCST328`.** Its `CST328_SLAVE_ADDRESS` constant is only an I2C-address alias (`0x1A`) that its generic dispatcher resolves to `TouchDrvCST3530` — a driver that speaks a completely different protocol (a 4-byte command wrapper: `0xD0070000` to read touches, `0xD00002AB` to ack, etc.), not the 16-bit register map (`0xD000`, `0xD005`, `0xD1F8`, `0xD1FC`, `0xD204`, `0xD208`, ...) documented for CST328.
@@ -32,7 +43,7 @@ All three agree on the register map, the reset timing, and the touch-report byte
 
 ```toml
 [dependencies]
-cst328 = { version = "0.1", default-features = false, features = ["blocking"] }
+cst328 = { package = "cst328-touch-driver", version = "0.1", default-features = false, features = ["blocking"] }
 ```
 
 ## Usage example (async)
@@ -141,7 +152,7 @@ Enable the `defmt` feature if you want the helper types and log statements to de
 
 ```toml
 [dependencies]
-cst328 = { version = "0.1", features = ["defmt"] }
+cst328 = { package = "cst328-touch-driver", version = "0.1", features = ["defmt"] }
 ```
 
 ## Development

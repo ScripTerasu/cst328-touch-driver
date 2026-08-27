@@ -1,5 +1,5 @@
 [package]
-name = "cst328"
+name = "cst328-touch-driver"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
@@ -11,6 +11,14 @@ keywords = ["touchscreen", "embedded-hal", "embedded", "i2c", "cst328"]
 categories = ["embedded", "hardware-support"]
 readme = "README.md"
 exclude = ["docs/", ".*"]
+
+[lib]
+# The crates.io package name (above) was taken, but the importable crate name
+# doesn't have to match it — this keeps `use cst328::...` working for
+# dependents that alias it (`cst328 = { package = "cst328-touch-driver", ... }`,
+# see the README) and for this crate's own tests/doctests, which resolve
+# against `[lib].name` regardless of the package name.
+name = "cst328"
 
 [package.metadata.docs.rs]
 # `async` and `blocking` both export a `CST328` type at the crate root and
