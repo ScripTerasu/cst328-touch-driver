@@ -96,3 +96,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85
       - run: cargo build --no-default-features --features async
       - run: cargo build --no-default-features --features blocking
+
+  esp32s3-example:
+    name: Build examples/waveshare-esp32s3-touch-lcd-2p8
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: esp-rs/xtensa-toolchain@v1.5
+        with:
+          default: true
+          ldproxy: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: cargo build --release
+        working-directory: examples/waveshare-esp32s3-touch-lcd-2p8

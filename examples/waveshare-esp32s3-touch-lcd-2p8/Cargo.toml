@@ -1,0 +1,38 @@
+[package]
+edition = "2024"
+name = "waveshare-esp32s3-touch-lcd-2p8"
+version = "0.1.0"
+authors = ["Sebastian Almendra"]
+license = "MIT"
+repository = "https://github.com/ScripTerasu/cst328-touch-driver"
+description = "Minimal ESP32-S3 demo wiring the CST328/CST3530 touch stack with async Embassy tasks."
+readme = "README.md"
+publish = false
+
+[[bin]]
+name = "waveshare-esp32s3-touch-lcd-2p8"
+path = "./src/bin/main.rs"
+
+[dependencies]
+cst328 = { path = "../..", features = ["defmt"] }
+critical-section = "1.2.0"
+defmt = "1.1.1"
+embassy-executor = { version = "0.10.0", features = ["defmt"] }
+embassy-time = { version = "0.5.0", features = ["defmt"] }
+embedded-hal-async = "1.0"
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["defmt", "esp32s3"] }
+esp-hal = { version = "~1.1.0", features = ["defmt", "esp32s3", "unstable"] }
+esp-println = { version = "0.17.0", features = ["defmt-espflash", "esp32s3"] }
+esp-rtos = { version = "0.3.0", features = ["defmt", "embassy", "esp32s3"] }
+static_cell = "2.1.1"
+
+# For fine tuning these settings, please refer to https://doc.rust-lang.org/cargo/reference/profiles.html
+# The default debug profile is too slow/big for resource-constrained devices.
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1     # LLVM performs better optimizations with a single thread
+debug = 2             # slower builds but richer debugging
+lto = 'fat'
+opt-level = 's'
