@@ -24,7 +24,7 @@ Verbatim copies of the source this driver was ported from (and one source it del
 
 | Reference detail | Source | This crate |
 | --- | --- | --- |
-| Register map (`0xD000`-`0xD01A`, `0xD101`-`0xD120`, `0xD1F4`-`0xD20C`) | Waveshare/ESPHome source, confirmed by the CST328 datasheet §12 | [`src/registers.rs`](../src/registers.rs) |
+| Register map (`0xD000`-`0xD01A`, `0xD101`-`0xD120`, `0xD1F8`-`0xD20C`) | Waveshare/ESPHome source, confirmed by the CST328 datasheet §12 | [`src/registers.rs`](../src/registers.rs) |
 | Reset timing (50 ms / 5 ms / 300 ms), attribute-read sequence | ESPHome source (`CST328_BEFORE_RESET_TIMEOUT`/`CST328_TRANSITION_TIMEOUT` comments cite "from datasheet") | [`src/driver.rs`](../src/driver.rs) (`reset()`, `get_attribute()`) |
 | Touch report byte layout, `0xCACA` firmware-CRC check, `0xAB` frame marker at offset 6 | Waveshare/ESPHome source; offset-6 marker and the `0xD000` touch-info table independently confirmed by the CST328 datasheet §12 | [`src/protocol.rs`](../src/protocol.rs) |
 | Run-mode registers — `0xD101`/`0xD109` exercised by the reference drivers; `0xD102`/`0xD104`/`0xD105`/`0xD108`/`0xD10A`/`0xD10D`/`0xD119` datasheet-confirmed but not exercised by either driver; `0xD10B`/`0xD10C` datasheet-only (absent from both reference drivers' source); `0xD120` reference-driver-only (absent from the datasheet) | CST328 datasheet §12 mode-command table, cross-checked against Waveshare's declared-but-unused register constants | [`src/mode.rs`](../src/mode.rs) |

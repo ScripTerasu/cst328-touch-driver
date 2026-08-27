@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `decode_touch_report()` now validates the fixed `0xAB` frame marker Hynitron's datasheet documents at report offset 6, rejecting a report if it doesn't match — not something either CST328 reference driver checks itself.
 - `CHANGELOG.md` (this file).
 
+### Removed
+
+- `REG_DEBUG_INFO_TP_NTX`/`REG_DEBUG_INFO_TP_NRX`/`REG_DEBUG_INFO_KEY_NUM` (`0xD1F4`/`0xD1F6`/`0xD1F7`) — declared for documentation completeness against the datasheet's register table, but never actually read by this crate (unlike the reference drivers, which do read that block to log it). Dead constants describing a read this driver doesn't perform; removed rather than kept as unused API surface.
+- The CI `semver-checks` job — `cargo-semver-checks` needs a previously published crates.io version as a baseline, and this crate has never had a release, so the job could only ever fail (`No available baseline versions for cst328@0.1.0`). Left a comment in `.github/workflows/ci.yml` for re-adding it once there's an actual first release to diff against.
+
 ### Changed
 
 - `RunMode` variant docs (`Reset`, `DebugRecalibration`, `DeepSleep`, `DebugPoint`, `DebugRawData`, `DebugDiff`, `Factory`) upgraded from "unverified, register-naming-convention only" to "datasheet-confirmed, just not exercised by either reference driver" now that Hynitron's datasheet documents each one's actual command. `Factory2` (`0xD120`) is now flagged as the one variant with *no* datasheet backing at all — it's absent from the datasheet's register appendix entirely, unlike everything else in `registers.rs`.

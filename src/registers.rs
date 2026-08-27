@@ -102,15 +102,6 @@ pub const REG_DEBUG_FACTORY_MODE: u16 = 0xD119;
 /// confirmation at all. Treat it as the least-trustworthy constant here.
 pub const REG_DEBUG_FACTORY_MODE_2: u16 = 0xD120;
 
-/// TX channel count, part of the debug-info block. Logged only by the
-/// reference drivers, not parsed into a typed field here.
-pub const REG_DEBUG_INFO_TP_NTX: u16 = 0xD1F4;
-/// RX channel count, part of the debug-info block. Logged only by the
-/// reference drivers, not parsed into a typed field here.
-pub const REG_DEBUG_INFO_TP_NRX: u16 = 0xD1F6;
-/// Key/button number, part of the debug-info block. Logged only by the
-/// reference drivers, not parsed into a typed field here.
-pub const REG_DEBUG_INFO_KEY_NUM: u16 = 0xD1F7;
 /// Panel resolution: 4-byte read yields X (bytes 0-1, little-endian u16)
 /// then Y (bytes 2-3, little-endian u16).
 pub const REG_RESOLUTION: u16 = 0xD1F8;

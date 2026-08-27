@@ -60,20 +60,15 @@ jobs:
         env:
           RUSTDOCFLAGS: -D warnings
 
-  semver:
-    name: semver-checks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: obi1kenobi/cargo-semver-checks-action@v2
-        with:
-          # Without this, the action heuristically enables every non-nightly
-          # feature it finds — including both `async` and `blocking` at once,
-          # which this crate's lib.rs deliberately makes a compile_error!
-          # (see the mutually-exclusive-features job below). Check against
-          # the crate's actual default public surface instead.
-          feature-group: default-features
+  # No `semver-checks` job yet: cargo-semver-checks needs a previously
+  # published crates.io version as a baseline to diff against, and this
+  # crate hasn't had a first release yet — "did this change break the public
+  # API" is meaningless without an established API to break. Add a job using
+  # `obi1kenobi/cargo-semver-checks-action@v2` once `cst328` has an actual
+  # release on crates.io; pin `feature-group: default-features` on it, since
+  # `async`/`blocking` both being enabled at once is a deliberate
+  # compile_error! in src/lib.rs, and the action's default feature-detection
+  # would otherwise enable both.
 
   mutually-exclusive-features:
     name: async + blocking must fail to compile
