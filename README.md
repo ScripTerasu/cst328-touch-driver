@@ -10,7 +10,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Why this isn't ported from SensorLib
 
-Sister project [`cst92xx`](https://github.com/ScripTerasu/cst92xx-touch-driver) was ported from SensorLib's `TouchDrvCST92xx`. This crate isn't, on purpose: **SensorLib has no `TouchDrvCST328`.** Its `CST328_SLAVE_ADDRESS` constant is only an I2C-address alias (`0x1A`) that its generic dispatcher resolves to `TouchDrvCST3530` — a driver that speaks a completely different protocol (a 4-byte command wrapper: `0xD0070000` to read touches, `0xD00002AB` to ack, etc.), not the 16-bit register map (`0xD000`, `0xD005`, `0xD1F8`, `0xD1FC`, `0xD204`, `0xD208`, ...) documented for CST328.
+**SensorLib has no `TouchDrvCST328`.** Its `CST328_SLAVE_ADDRESS` constant is only an I2C-address alias (`0x1A`) that its generic dispatcher resolves to `TouchDrvCST3530` — a driver that speaks a completely different protocol (a 4-byte command wrapper: `0xD0070000` to read touches, `0xD00002AB` to ack, etc.), not the 16-bit register map (`0xD000`, `0xD005`, `0xD1F8`, `0xD1FC`, `0xD204`, `0xD208`, ...) documented for CST328.
 
 This driver ports the register-based protocol instead, cross-verified against two independent, actively-maintained, open-source drivers written specifically for this chip on the [Waveshare ESP32-S3-Touch-LCD-2.8](https://www.waveshare.com/esp32-s3-touch-lcd-2.8.htm) board, and confirmed against Hynitron's own official CST328 datasheet:
 
@@ -89,14 +89,14 @@ where
 | `CST328<I2C, Delay>` (feature `async`) | Async driver over `embedded-hal-async::i2c::I2c` + `embedded-hal-async::delay::DelayNs`. Provides `init`, `touches`, `set_mode`, `chip_info`, `model_name`, `with_reset`, and `with_config`. |
 | `CST328<I2C, Delay>` (feature `blocking`) | Sync counterpart over `embedded_hal::i2c::I2c` + `embedded_hal::delay::DelayNs`. Mirrors the async API so business logic reads the same between runtimes. |
 | `ChipInfo` | Chip metadata discovered by `init()`/`get_attribute()` — chip/project ID, panel resolution, firmware version, firmware CRC. Read-only; fetch it with `driver.chip_info()`. |
-| `Point` | Touch descriptor returned by `touches()`, already passed through `TouchConfig::transform()`. Includes `track_id`, `(x, y)`, and `area` — a real pressure/weight value on this chip family (unlike CST92xx, which always reports `0`). |
+| `Point` | Touch descriptor returned by `touches()`, already passed through `TouchConfig::transform()`. Includes `track_id`, `(x, y)`, and `area` — a real pressure/weight value on this chip family. |
 | `TouchConfig` / `Orientation` / `DisplayMapping` | Optional coordinate transform (axis swap, mirroring, scaling to a target display resolution) applied to every `Point` from `touches()`. Set it via `driver.with_config(...)`; see `TouchConfig::with_target_resolution`. |
 | `RunMode` | Enum describing every controller mode (normal, debug/info, factory test, etc.) for `set_mode`. Only `Normal` and `DebugInfo` are exercised by either reference driver; most other variants are still datasheet-confirmed (Hynitron's official register appendix documents them) even though neither reference driver writes them — `DebugWrite`/`DebugCalibration` are datasheet-only, and `Factory2` is the one variant with no datasheet backing at all. See the per-variant docs before relying on them. |
 | `NoResetPin` | Default `RST` type when no hardware reset pin is attached (via `.with_reset(pin)`). `reset()` still runs its settle delays, just without toggling anything. |
 | `Error<E>` | Driver error type, generic over the I²C error type `E`. |
 
-- `touches()` reads the `REG_READ` report, validates the fixed `0xAB` frame marker Hynitron's datasheet documents at offset 6 (rejecting the report if it doesn't match), decodes up to 5 points, and applies `TouchConfig::transform()` before returning. It acknowledges **every** read regardless of content (clearing `REG_FINGER_NUM` and re-arming the `0xAB` sync byte at `REG_READ`), matching both reference drivers — this intentionally does not replicate the CST92xx driver's "skip the ack on an all-zero buffer" behavior, since neither reference implementation here does that either.
-- `set_mode()` writes a zero-length payload to the target mode's work-mode register. Unlike CST92xx, no confirmation/status-echo register is known for this protocol, so there's no handshake or retry loop.
+- `touches()` reads the `REG_READ` report, validates the fixed `0xAB` frame marker Hynitron's datasheet documents at offset 6 (rejecting the report if it doesn't match), decodes up to 5 points, and applies `TouchConfig::transform()` before returning. It acknowledges **every** read regardless of content (clearing `REG_FINGER_NUM` and re-arming the `0xAB` sync byte at `REG_READ`), matching both reference drivers — neither of them skips the ack on an all-zero buffer, so this driver doesn't either.
+- `set_mode()` writes a zero-length payload to the target mode's work-mode register. No confirmation/status-echo register is known for this protocol, so there's no handshake or retry loop.
 - Use `driver.model_name()` for a human-readable chip name (always `"CST328/CST3530"` — see [`ChipInfo::chip_id`] below for why), or `driver.chip_info()` for the full `ChipInfo`.
 
 ## Reset pin

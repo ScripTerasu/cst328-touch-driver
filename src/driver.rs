@@ -244,8 +244,8 @@ where
     maybe_async! {
         /// Switch to a controller run mode (normal, debug/info, factory test, etc.).
         ///
-        /// Writes a zero-length payload to the mode's work-mode register — unlike CST92xx,
-        /// no confirmation/status-echo register is known for this protocol, so there's no
+        /// Writes a zero-length payload to the mode's work-mode register — no
+        /// confirmation/status-echo register is known for this protocol, so there's no
         /// handshake or retry loop here. See [`RunMode`] for which variants are actually
         /// exercised by the reference drivers versus mapped by naming convention only.
         pub fn set_mode(&mut self, mode: RunMode) -> Result<(), Error<E>> {
@@ -298,8 +298,8 @@ where
         /// Acknowledges every read regardless of content — clearing `REG_FINGER_NUM` and
         /// re-arming the sync byte at `REG_READ` — matching both ESPHome's `cst328` component
         /// and SensorLib's `TouchDrvCST3530::getTouchPoints()` (which sends its `CLEAR_COMMAND`
-        /// unconditionally). This intentionally does not replicate the CST92xx driver's
-        /// all-zero-buffer skip, which neither reference implementation here does either.
+        /// unconditionally). Neither reference implementation skips the ack on an all-zero
+        /// buffer, so this driver doesn't either.
         pub fn touches(&mut self) -> Result<[Option<Point>; MAX_FINGER_NUM], Error<E>> {
             let mut buffer = [0u8; TOUCH_DATA_SIZE];
             let reg_bytes = REG_READ.to_be_bytes();

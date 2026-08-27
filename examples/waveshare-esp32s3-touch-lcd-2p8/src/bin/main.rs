@@ -3,9 +3,8 @@
 // at the repository root. The touch controller has its own dedicated I2C bus
 // (SDA=GPIO1, SCL=GPIO3) and its own dedicated RST pin (GPIO2), separate from
 // both the LCD's SPI/RST pins and the onboard IMU/RTC's I2C bus
-// (SCL=GPIO10, SDA=GPIO11) — don't assume any of these are shared just
-// because CST92xx's example board happened to share its touch bus with other
-// peripherals; always check your own board's schematic.
+// (SCL=GPIO10, SDA=GPIO11) — don't assume any of these are shared on a
+// different board; always check your own board's schematic.
 #![no_std]
 #![no_main]
 #![deny(

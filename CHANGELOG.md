@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/CST328_Datasheet_zh_V2.2.pdf` and `docs/CST3530_Datasheet_V1.0.pdf`, Hynitron's official datasheets, plus `docs/ESP32-S3-Touch-LCD-2.8-schematic.pdf` (Waveshare's board schematic). The CST328 datasheet's register appendix (section 12) confirms the register map this crate ported from Waveshare/ESPHome byte-for-byte, and documents three registers neither reference driver reads/writes: `REG_DEBUG_WRITE_MODE` (`0xD10B`), `REG_DEBUG_CALIBRATION_MODE` (`0xD10C`), and `REG_FW_CHECKSUM` (`0xD20C`, now populating a new `ChipInfo::fw_checksum` field). `RunMode` gained `DebugWrite` and `DebugCalibration` variants for the first two.
 - `docs/reference/`: verbatim copies of the Waveshare, ESPHome, and SensorLib source this crate was ported from (or deliberately wasn't), with license attribution.
 - `examples/waveshare-esp32s3-touch-lcd-2p8`, an ESP32-S3 + Embassy demo for the board this crate targets, with I2C/RST/INT pins confirmed against the official schematic and a second independent source.
-- `decode_touch_report()` now validates the fixed `0xAB` frame marker Hynitron's datasheet documents at report offset 6, rejecting a report if it doesn't match — the same role SensorLib's own `0xAB` ack byte plays for the CST92xx protocol, but not something either CST328 reference driver checks.
+- `decode_touch_report()` now validates the fixed `0xAB` frame marker Hynitron's datasheet documents at report offset 6, rejecting a report if it doesn't match — not something either CST328 reference driver checks itself.
 - `CHANGELOG.md` (this file).
 
 ### Changed

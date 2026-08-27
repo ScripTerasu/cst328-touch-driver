@@ -1,7 +1,7 @@
 /// A detected touch point, already transformed according to `TouchConfig`.
 ///
-/// Unlike the CST92xx family, CST328/CST3530 reports a real per-point
-/// pressure/weight byte — `area` here is that raw value, not always `0`.
+/// CST328/CST3530 reports a real per-point pressure/weight byte — `area`
+/// here is that raw value.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Point {

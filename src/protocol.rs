@@ -28,10 +28,9 @@ pub(crate) fn validate_fw_crc(fw_crc: u16) -> bool {
 
 /// The register `set_mode()` should write for a given [`RunMode`].
 ///
-/// Every mode transition is a zero-length write to a work-mode register —
-/// unlike CST92xx, no confirmation/status-echo register is known for this
-/// protocol, so there's nothing here analogous to `ModeBytes::Fixed` vs
-/// `NeedsFactoryHandshake`.
+/// Every mode transition is a zero-length write to a work-mode register — no
+/// confirmation/status-echo register is known for this protocol, so there's
+/// no handshake/retry state to represent here.
 pub(crate) fn mode_register(mode: RunMode) -> u16 {
     match mode {
         RunMode::Normal => REG_NORMAL_MODE,
@@ -62,8 +61,7 @@ pub(crate) fn mode_register(mode: RunMode) -> u16 {
 /// [`CST328_SYNC_BYTE`] — the official CST328 datasheet documents that offset
 /// as a fixed `0xAB` marker the chip populates in every report, which neither
 /// reference driver checks but which gives a cheap way to reject a garbled
-/// or stale read (the same role SensorLib's own `0xAB` ack byte plays for the
-/// CST92xx protocol).
+/// or stale read.
 pub(crate) fn decode_touch_report(
     buffer: &[u8],
     config: &TouchConfig,

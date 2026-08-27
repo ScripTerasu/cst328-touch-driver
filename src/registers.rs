@@ -140,8 +140,7 @@ pub const REG_FW_CHECKSUM: u16 = 0xD20C;
 /// The same byte value also shows up *read-only*, chip-populated, at offset
 /// 6 of every touch report (`REG_READ + 6`) — the official CST328 datasheet
 /// documents that offset as a fixed `0xAB` marker. `decode_touch_report()`
-/// checks it against this same constant as a frame-validity check, the same
-/// role SensorLib's CST92xx protocol uses its own `0xAB` ack byte for.
+/// checks it against this same constant as a frame-validity check.
 pub const CST328_SYNC_BYTE: u8 = 0xAB;
 
 /// Maximum simultaneous touch contacts the controller reports (and this
