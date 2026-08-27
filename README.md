@@ -1,6 +1,10 @@
 # CST328/CST3530 Touch Controller Driver
 
+[![CI](https://github.com/ScripTerasu/cst328-touch-driver/actions/workflows/ci.yml/badge.svg)](https://github.com/ScripTerasu/cst328-touch-driver/actions/workflows/ci.yml)
+
 `cst328` is a `no_std` driver for the CST328/CST3530 family of capacitive touch controllers, ported from Waveshare's official [`esp_lcd_touch_cst328`][waveshare-driver] component and ESPHome's [`cst328`][esphome-driver] component to idiomatic `embedded-hal`. It exposes one `CST328` type backed by either async or blocking I²C, shared register/type modules, and the `RunMode` enum so you can plug it into any embedded project.
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Why this isn't ported from SensorLib
 
