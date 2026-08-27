@@ -21,6 +21,7 @@ const REG_CHECK_CODE_BYTES: [u8; 2] = registers::REG_CHECK_CODE.to_be_bytes();
 const REG_RESOLUTION_BYTES: [u8; 2] = registers::REG_RESOLUTION.to_be_bytes();
 const REG_CHIP_TYPE_BYTES: [u8; 2] = registers::REG_CHIP_TYPE.to_be_bytes();
 const REG_FW_VERSION_BYTES: [u8; 2] = registers::REG_FW_VERSION.to_be_bytes();
+const REG_FW_CHECKSUM_BYTES: [u8; 2] = registers::REG_FW_CHECKSUM.to_be_bytes();
 
 // fw_crc = 0xCACA (bytes[2..4], little-endian); bytes[0..2] is the undocumented boot-time field.
 const CHECK_CODE_VALID: [u8; 4] = [0x11, 0x22, 0xCA, 0xCA];
@@ -32,6 +33,8 @@ const RESOLUTION_VALID: [u8; 4] = [0xF0, 0x00, 0x40, 0x01];
 const CHIP_TYPE_VALID: [u8; 4] = [0x34, 0x12, 0x28, 0x03];
 // fw_build = 0x0102 (little-endian), fw_minor = 0x05, fw_major = 0x03.
 const FW_VERSION_VALID: [u8; 4] = [0x02, 0x01, 0x05, 0x03];
+// fw_checksum = 0xAABBCCDD, little-endian.
+const FW_CHECKSUM_VALID: [u8; 4] = [0xDD, 0xCC, 0xBB, 0xAA];
 const DISCARD_BYTE: [u8; 1] = [0x00];
 
 const ADDR: u8 = registers::CST328_SLAVE_ADDRESS;
@@ -56,6 +59,11 @@ fn attribute_expectations_success() -> Vec<I2cTransaction> {
             ADDR,
             REG_RESOLUTION_BYTES.to_vec(),
             RESOLUTION_VALID.to_vec(),
+        ),
+        I2cTransaction::write_read(
+            ADDR,
+            REG_FW_CHECKSUM_BYTES.to_vec(),
+            FW_CHECKSUM_VALID.to_vec(),
         ),
         I2cTransaction::write(ADDR, REG_NORMAL_MODE_BYTES.to_vec()),
         I2cTransaction::write_read(ADDR, REG_READ_BYTES.to_vec(), DISCARD_BYTE.to_vec()),
@@ -89,6 +97,7 @@ fn touches_parses_single_point() {
     report[3] = 0x57;
     report[4] = 0x32; // pressure
     report[5] = 0x01; // touch_count = 1
+    report[6] = registers::CST328_SYNC_BYTE;
 
     let expectations = [
         I2cTransaction::write_read(ADDR, REG_READ_BYTES.to_vec(), report.to_vec()),
@@ -124,6 +133,7 @@ fn get_attribute_populates_chip_info_on_success() {
     assert_eq!(info.fw_build, 0x0102);
     assert_eq!(info.fw_minor, 0x05);
     assert_eq!(info.fw_major, 0x03);
+    assert_eq!(info.fw_checksum, 0xAABB_CCDD);
     assert_eq!(info.resolution_x, 240);
     assert_eq!(info.resolution_y, 320);
     assert_eq!(driver.model_name(), "CST328/CST3530");

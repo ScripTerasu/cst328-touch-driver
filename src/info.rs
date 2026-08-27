@@ -37,6 +37,11 @@ pub struct ChipInfo {
     pub fw_minor: u8,
     /// Firmware build number, from `REG_FW_VERSION` (`0xD208`, bytes 0-1).
     pub fw_build: u16,
+    /// Firmware checksum, from `REG_FW_CHECKSUM` (`0xD20C`). Documented by
+    /// the official CST328 datasheet but not read (or validated against
+    /// anything) by either reference driver this crate otherwise ports —
+    /// informational only.
+    pub fw_checksum: u32,
 }
 
 impl ChipInfo {

@@ -9,9 +9,10 @@
 use crate::info::Point;
 use crate::mode::RunMode;
 use crate::registers::{
-    MAX_FINGER_NUM, REG_DEBUG_DIFF_MODE, REG_DEBUG_FACTORY_MODE, REG_DEBUG_FACTORY_MODE_2,
-    REG_DEBUG_INFO_MODE, REG_DEBUG_POINT_MODE, REG_DEBUG_RAWDATA_MODE,
-    REG_DEBUG_RECALIBRATION_MODE, REG_DEEP_SLEEP_MODE, REG_NORMAL_MODE, REG_RESET_MODE,
+    CST328_SYNC_BYTE, MAX_FINGER_NUM, REG_DEBUG_CALIBRATION_MODE, REG_DEBUG_DIFF_MODE,
+    REG_DEBUG_FACTORY_MODE, REG_DEBUG_FACTORY_MODE_2, REG_DEBUG_INFO_MODE, REG_DEBUG_POINT_MODE,
+    REG_DEBUG_RAWDATA_MODE, REG_DEBUG_RECALIBRATION_MODE, REG_DEBUG_WRITE_MODE,
+    REG_DEEP_SLEEP_MODE, REG_NORMAL_MODE, REG_RESET_MODE,
 };
 use crate::types::TouchConfig;
 
@@ -40,6 +41,8 @@ pub(crate) fn mode_register(mode: RunMode) -> u16 {
         RunMode::DeepSleep => REG_DEEP_SLEEP_MODE,
         RunMode::DebugPoint => REG_DEBUG_POINT_MODE,
         RunMode::DebugRawData => REG_DEBUG_RAWDATA_MODE,
+        RunMode::DebugWrite => REG_DEBUG_WRITE_MODE,
+        RunMode::DebugCalibration => REG_DEBUG_CALIBRATION_MODE,
         RunMode::DebugDiff => REG_DEBUG_DIFF_MODE,
         RunMode::Factory => REG_DEBUG_FACTORY_MODE,
         RunMode::Factory2 => REG_DEBUG_FACTORY_MODE_2,
@@ -55,13 +58,22 @@ pub(crate) fn mode_register(mode: RunMode) -> u16 {
 /// points 1-4 each occupy a plain 5-byte stride after that — this asymmetric
 /// layout (not a uniform 5-byte array) is what both Waveshare's official
 /// `esp_lcd_touch_cst328` driver and ESPHome's `cst328` component decode, so
-/// it's preserved here rather than "cleaned up".
+/// it's preserved here rather than "cleaned up". Byte 6 is validated against
+/// [`CST328_SYNC_BYTE`] — the official CST328 datasheet documents that offset
+/// as a fixed `0xAB` marker the chip populates in every report, which neither
+/// reference driver checks but which gives a cheap way to reject a garbled
+/// or stale read (the same role SensorLib's own `0xAB` ack byte plays for the
+/// CST92xx protocol).
 pub(crate) fn decode_touch_report(
     buffer: &[u8],
     config: &TouchConfig,
     panel_resolution: (u16, u16),
 ) -> [Option<Point>; MAX_FINGER_NUM] {
     let mut points: [Option<Point>; MAX_FINGER_NUM] = [None; MAX_FINGER_NUM];
+
+    if buffer[6] != CST328_SYNC_BYTE {
+        return points;
+    }
 
     let touch_count = (buffer[5] & 0x0F) as usize;
     if touch_count == 0 || touch_count > MAX_FINGER_NUM {
@@ -108,7 +120,8 @@ mod tests {
 
     #[test]
     fn zero_touch_count_returns_no_points() {
-        let buffer = [0u8; crate::registers::TOUCH_DATA_SIZE];
+        let mut buffer = [0u8; crate::registers::TOUCH_DATA_SIZE];
+        buffer[6] = CST328_SYNC_BYTE;
         let points = decode_touch_report(&buffer, &TouchConfig::default(), (240, 320));
         assert!(points.iter().all(|p| p.is_none()));
     }
@@ -117,6 +130,16 @@ mod tests {
     fn touch_count_above_max_returns_no_points() {
         let mut buffer = [0u8; crate::registers::TOUCH_DATA_SIZE];
         buffer[5] = 0x06; // 6 > MAX_FINGER_NUM (5)
+        buffer[6] = CST328_SYNC_BYTE;
+        let points = decode_touch_report(&buffer, &TouchConfig::default(), (240, 320));
+        assert!(points.iter().all(|p| p.is_none()));
+    }
+
+    #[test]
+    fn mismatched_sync_byte_returns_no_points() {
+        let mut buffer = [0u8; crate::registers::TOUCH_DATA_SIZE];
+        buffer[5] = 0x01; // touch_count = 1, would otherwise decode a point
+        buffer[6] = 0x00; // not CST328_SYNC_BYTE
         let points = decode_touch_report(&buffer, &TouchConfig::default(), (240, 320));
         assert!(points.iter().all(|p| p.is_none()));
     }
@@ -131,6 +154,7 @@ mod tests {
         buffer[3] = 0x57; // x low nibble=5, y low nibble=7
         buffer[4] = 0x32; // pressure
         buffer[5] = 0x01; // touch_count = 1
+        buffer[6] = CST328_SYNC_BYTE;
 
         let points = decode_touch_report(&buffer, &TouchConfig::default(), (240, 320));
         let point = points[0].unwrap();
@@ -151,6 +175,7 @@ mod tests {
         buffer[3] = 0x00;
         buffer[4] = 0x00;
         buffer[5] = 0x02; // touch_count = 2
+        buffer[6] = CST328_SYNC_BYTE;
         // Point 1 at offset 7..12 (0 + 7 stride from point 0).
         buffer[7] = 0x10; // id=1
         buffer[8] = 0x03;

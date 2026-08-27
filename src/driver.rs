@@ -25,8 +25,8 @@ use crate::mode::RunMode;
 use crate::protocol;
 use crate::registers::{
     CST328_SLAVE_ADDRESS, CST328_SYNC_BYTE, MAX_FINGER_NUM, REG_CHECK_CODE, REG_CHIP_TYPE,
-    REG_DEBUG_INFO_MODE, REG_FINGER_NUM, REG_FW_VERSION, REG_NORMAL_MODE, REG_READ, REG_RESOLUTION,
-    TOUCH_DATA_SIZE,
+    REG_DEBUG_INFO_MODE, REG_FINGER_NUM, REG_FW_CHECKSUM, REG_FW_VERSION, REG_NORMAL_MODE,
+    REG_READ, REG_RESOLUTION, TOUCH_DATA_SIZE,
 };
 use crate::reset_pin::NoResetPin;
 use crate::types::TouchConfig;
@@ -212,6 +212,10 @@ where
                 self.chip_info.resolution_x,
                 self.chip_info.resolution_y
             );
+
+            maybe_await!(self.write_read(&REG_FW_CHECKSUM.to_be_bytes(), &mut buffer))?;
+            self.chip_info.fw_checksum =
+                u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
 
             maybe_await!(self.write(&REG_NORMAL_MODE.to_be_bytes()))?;
 
