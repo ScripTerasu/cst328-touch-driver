@@ -4,6 +4,8 @@
 
 `cst328` is a `no_std` driver for the CST328/CST3530 family of capacitive touch controllers, ported from Waveshare's official [`esp_lcd_touch_cst328`][waveshare-driver] component and ESPHome's [`cst328`][esphome-driver] component to idiomatic `embedded-hal`. It exposes one `CST328` type backed by either async or blocking I²C, shared register/type modules, and the `RunMode` enum so you can plug it into any embedded project.
 
+Validated on a real Waveshare ESP32-S3-Touch-LCD-2.8 board (see [Hardware notes](#hardware-notes)) — `init()`, multi-touch, and per-point pressure all work as ported.
+
 See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Why this isn't ported from SensorLib
@@ -156,14 +158,15 @@ Run the usual tooling before deploying to hardware. `cargo build --all-features`
 
 ## Hardware notes
 
-This driver targets the CST328/CST3530 controller as wired on the [Waveshare ESP32-S3-Touch-LCD-2.8](https://www.waveshare.com/esp32-s3-touch-lcd-2.8.htm) module, at I²C address `0x1A`. It hasn't yet been validated against real hardware after being written — the byte layouts and register map are cross-corroborated between two independent reference drivers *and* Hynitron's own official CST328 datasheet (see "Why this isn't ported from SensorLib" above), but this driver's own Rust port of them hasn't been flashed and touched yet. Treat it as a strong first draft, not a proven-on-hardware release, until that validation happens.
+This driver targets the CST328/CST3530 controller as wired on the [Waveshare ESP32-S3-Touch-LCD-2.8](https://www.waveshare.com/esp32-s3-touch-lcd-2.8.htm) module, at I²C address `0x1A`.
 
-A few things worth re-checking once you do have hardware to test against:
+**Validated on real hardware** (2026-08-26, via `examples/waveshare-esp32s3-touch-lcd-2p8` flashed to an actual ESP32-S3-Touch-LCD-2.8 board): `reset()`, `get_attribute()`'s full attribute read (including the `0xCACA` firmware-CRC check), and `touches()` — including its per-report `0xAB` frame-marker validation, the finger-count-driven decode with the asymmetric point-0-is-7-bytes stride, real per-point pressure values, and two simultaneous touch points (multi-touch) — all worked correctly over a multi-hundred-report session with zero I2C errors or panics. INT-driven `wait_for_any_edge()` correctly gated reads to real touch events rather than polling blindly. This confirms the register map and touch-report byte layout this crate ports from Waveshare/ESPHome (and cross-checked against Hynitron's datasheet) are correct as written, not just correct on paper.
 
-- `RunMode` variants the reference drivers don't exercise, even the datasheet-confirmed ones — a documented command byte isn't the same as this driver's exact write sequence being verified against silicon. See the per-variant docs in [`mode.rs`](src/mode.rs).
-- The reset timing (50 ms / 5 ms / 300 ms) — ported from ESPHome's datasheet-referenced comments, not independently re-measured. (Hynitron's own datasheet gives different, smaller numbers for its power-on/reset timing — `TPOR`≈200 ms, `TRON`≈200 ms, `TRST`≈0.1 ms typical — which this driver's timing comfortably exceeds, but the two aren't the same numbers.)
-- Whether `touches()`'s unconditional ack (versus CST92xx's skip-on-all-zero) is actually necessary/correct for every report the real chip sends.
-- CST3530 support specifically — see [Chip identification](#chip-identification-chipinfochip_id) above; it's a bigger, meaningfully different chip with no independently published register map.
+A few things remain unverified and are worth checking if you rely on them:
+
+- `RunMode` variants beyond `Normal` and `DebugInfo` — the hardware session above only exercised those two (via `init()`); every other variant, even the datasheet-confirmed ones, hasn't had its exact write sequence verified against silicon. See the per-variant docs in [`mode.rs`](src/mode.rs).
+- The reset timing (50 ms / 5 ms / 300 ms) worked as-is on the tested board, but wasn't independently re-measured against Hynitron's own datasheet numbers for power-on/reset (`TPOR`≈200 ms, `TRON`≈200 ms, `TRST`≈0.1 ms typical) — this driver's timing comfortably exceeds those, which is presumably why it worked, but the two aren't the same numbers.
+- CST3530 support specifically — the hardware validation above was against a CST328 part; see [Chip identification](#chip-identification-chipinfochip_id) above for why CST3530 support is still an unconfirmed assumption.
 
 ## References
 

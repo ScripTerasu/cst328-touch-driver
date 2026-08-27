@@ -4,6 +4,8 @@ This subproject (`examples/waveshare-esp32s3-touch-lcd-2p8`) started from the `e
 
 **This example targets the Waveshare ESP32-S3-Touch-LCD-2.8 board (CST328) specifically.** Its pin numbers are confirmed against that board's own schematic (`docs/ESP32-S3-Touch-LCD-2.8-schematic.pdf` at the repository root) — don't assume they carry over to any other board, including other Waveshare touch/LCD products.
 
+This is the exact demo used to validate the driver on real hardware (2026-08-26) — flashed to an actual board, it correctly reported multi-touch coordinates and per-point pressure over a multi-hundred-report session with zero I2C errors. See the crate [README's Hardware notes](../../README.md#hardware-notes) for details.
+
 It is **not** a workspace member of the crate at the repository root — it has its own `Cargo.lock` and toolchain pin, and is built from within this directory.
 
 ## What's inside?
