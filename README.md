@@ -95,7 +95,7 @@ where
 | `NoResetPin` | Default `RST` type when no hardware reset pin is attached (via `.with_reset(pin)`). `reset()` still runs its settle delays, just without toggling anything. |
 | `Error<E>` | Driver error type, generic over the I²C error type `E`. |
 
-- `touches()` reads the `REG_READ` report, validates the fixed `0xAB` frame marker Hynitron's datasheet documents at offset 6 (rejecting the report if it doesn't match), decodes up to 5 points, and applies `TouchConfig::transform()` before returning. It acknowledges **every** read regardless of content (clearing `REG_FINGER_NUM` and re-arming the `0xAB` sync byte at `REG_READ`), matching both reference drivers — neither of them skips the ack on an all-zero buffer, so this driver doesn't either.
+- `touches()` reads the `REG_READ` report, validates the fixed `0xAB` frame marker Hynitron's datasheet documents at offset 6 (rejecting the report if it doesn't match), decodes up to 5 points, and applies `TouchConfig::transform()` before returning. It acknowledges **every** read regardless of content (clearing `REG_FINGER_NUM` and re-arming the `0xAB` sync byte at `REG_READ`), matching both reference drivers — neither of them skips the ack on an all-zero buffer, so this driver doesn't either. It always reads the full 27-byte block; Waveshare's official driver instead pre-checks the finger count with a cheap 1-byte read of `REG_FINGER_NUM` first and skips the 27-byte read entirely when there's no touch — a deliberate difference, not an oversight (see [Hardware notes](#hardware-notes)).
 - `set_mode()` writes a zero-length payload to the target mode's work-mode register. No confirmation/status-echo register is known for this protocol, so there's no handshake or retry loop.
 - Use `driver.model_name()` for a human-readable chip name (always `"CST328/CST3530"` — see [`ChipInfo::chip_id`] below for why), or `driver.chip_info()` for the full `ChipInfo`.
 
@@ -167,6 +167,10 @@ A few things remain unverified and are worth checking if you rely on them:
 - `RunMode` variants beyond `Normal` and `DebugInfo` — the hardware session above only exercised those two (via `init()`); every other variant, even the datasheet-confirmed ones, hasn't had its exact write sequence verified against silicon. See the per-variant docs in [`mode.rs`](src/mode.rs).
 - The reset timing (50 ms / 5 ms / 300 ms) worked as-is on the tested board, but wasn't independently re-measured against Hynitron's own datasheet numbers for power-on/reset (`TPOR`≈200 ms, `TRON`≈200 ms, `TRST`≈0.1 ms typical) — this driver's timing comfortably exceeds those, which is presumably why it worked, but the two aren't the same numbers.
 - CST3530 support specifically — the hardware validation above was against a CST328 part; see [Chip identification](#chip-identification-chipinfochip_id) above for why CST3530 support is still an unconfirmed assumption.
+
+### Deliberately not ported: Waveshare's two-step touch read
+
+Waveshare's official driver reads `REG_FINGER_NUM` (1 byte) first, and only reads the full 27-byte `REG_READ` block if that count is nonzero — skipping the larger read entirely on a "no touch" poll. This crate always reads the full 27-byte block unconditionally (matching ESPHome's simpler approach, which is what's actually validated on hardware above). This was a deliberate choice, not an oversight: `touches()` here is meant to be called after an INT-pin edge (see the example), where a real report is already waiting almost every time, so the extra bus traffic Waveshare's pre-check avoids barely applies. If you're polling `touches()` on a fixed interval without INT, Waveshare's pre-check would save I2C bandwidth on idle polls — reintroducing it would mean adding a 1-byte `REG_FINGER_NUM` read before the 27-byte one and early-returning when it's zero.
 
 ## References
 
